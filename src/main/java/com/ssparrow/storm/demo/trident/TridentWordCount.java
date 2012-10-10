@@ -73,7 +73,7 @@ public class TridentWordCount {
 		TridentTopology topology=new TridentTopology();
 		TridentState tridentState = topology.newStream("spout1", spout)
 			.parallelismHint(16)
-			.each(new Fields("sentence"), new Split(), new Fields("word"))
+			.each(new Fields("sentence"), new Split(), new Fields("item"))
 			.each(new Fields("item"), new LowerCase(), new Fields("word"))
 			.groupBy(new Fields("word"))
 			.persistentAggregate(new MemoryMapState.Factory(), new Count(), new Fields("count"))
