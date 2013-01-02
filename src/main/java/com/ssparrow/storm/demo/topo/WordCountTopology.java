@@ -3,9 +3,9 @@
  */
 package com.ssparrow.storm.demo.topo;
 
-import com.ssparrow.storm.demo.bolt.LowercaseBolt;
-import com.ssparrow.storm.demo.bolt.WordCountBolt;
-import com.ssparrow.storm.demo.bolt.WordExtractorBolt;
+import com.ssparrow.storm.demo.bolt.wordcount.LowercaseBolt;
+import com.ssparrow.storm.demo.bolt.wordcount.WordCountBolt;
+import com.ssparrow.storm.demo.bolt.wordcount.WordExtractorBolt;
 import com.ssparrow.storm.demo.sprout.LineReadSprout;
 
 import backtype.storm.Config;

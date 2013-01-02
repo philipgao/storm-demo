@@ -1,10 +1,9 @@
 /**
  * 
  */
-package com.ssparrow.storm.demo.bolt;
+package com.ssparrow.storm.demo.bolt.wordcount;
 
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -18,7 +17,7 @@ import backtype.storm.tuple.Values;
  * @author Gao, Fei
  *
  */
-public class WordExtractorBolt extends BaseRichBolt {
+public class LowercaseBolt extends BaseRichBolt {
 	OutputCollector collector;
 
 	/* (non-Javadoc)
@@ -34,16 +33,7 @@ public class WordExtractorBolt extends BaseRichBolt {
 	 */
 	@Override
 	public void execute(Tuple input) {
-		String line = input.getString(0);
-		
-		if(line!=null){
-			StringTokenizer st = new StringTokenizer(line," ,.;");
-			while(st.hasMoreTokens()){
-				String word = st.nextToken();
-				collector.emit(new Values(word));
-			}
-		}
-
+		collector.emit(new Values(input.getString(0).toLowerCase()));
 		collector.ack(input);
 	}
 
