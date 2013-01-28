@@ -115,6 +115,8 @@ public class SlidingWindowCounterBolt extends BaseRichBolt{
 									}
 								}
 							}
+							
+							bucketBeginIndex=bucketIndex;
 						}
 						
 						Thread.sleep((bucketSize-(System.currentTimeMillis()/1000)%bucketSize)*1000);
