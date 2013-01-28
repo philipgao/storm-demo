@@ -15,6 +15,7 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Utils;
 
 /**
  * @author Gao, Fei
@@ -28,7 +29,6 @@ public class SlidingWindowCounterBolt extends BaseRichBolt{
 	
 	private long startTime;
 	private boolean isStarting=true;
-	private int bucketBeginIndex;
 	
 	private Map<Object, Integer[]> counterMap=new HashMap<Object, Integer[]>();
 	/**
@@ -92,37 +92,36 @@ public class SlidingWindowCounterBolt extends BaseRichBolt{
 		this.collector=_collector;
 
 		startTime=System.currentTimeMillis();
-		bucketBeginIndex=getBucketIndex(startTime);
 		
 		Thread bucketCleanerThread=new Thread(new Runnable(){
 
 			@Override
 			public void run() {
+				int lastBucketIndex=getBucketIndex(System.currentTimeMillis());
+				
 				while(true){
-					try {
-						int bucketIndex=getBucketIndex(System.currentTimeMillis());
-						
-						if(bucketIndex!=bucketBeginIndex){
-							synchronized(counterMap){
-								for(Object object:counterMap.keySet()){
-									Integer[] counts=counterMap.get(object);
-									
-									collector.emit(new Values(System.currentTimeMillis(), object.toString(), getTotalCount(counts)));
-									System.out.println("!!!!!!!!!!!!!!!Total "+ object.toString()+" "+ getTotalCount(counts));
-									
-									if(!isStarting()){
-										counts[bucketIndex]=0;
-									}
+					int bucketIndex=getBucketIndex(System.currentTimeMillis());
+					
+					if(bucketIndex!=lastBucketIndex){
+						synchronized(counterMap){
+							for(Object object:counterMap.keySet()){
+								Integer[] counts=counterMap.get(object);
+								
+								int totalCount = getTotalCount(counts);
+								collector.emit(new Values(System.currentTimeMillis(), object.toString(), totalCount));
+								System.out.println("!!!!!!!!!!!!!!!Total "+ object.toString()+" "+ totalCount);
+								
+								if(!isStarting()){
+									int bucketToCleanIndex=(bucketIndex+1)%bucketNum;
+									counts[bucketToCleanIndex]=0;
 								}
 							}
-							
-							bucketBeginIndex=bucketIndex;
 						}
 						
-						Thread.sleep((bucketSize-(System.currentTimeMillis()/1000)%bucketSize)*1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+						lastBucketIndex=bucketIndex;
 					}
+					
+					Utils.sleep((bucketSize-(System.currentTimeMillis()/1000)%bucketSize)*1000);
 				}
 			}
 			
@@ -141,5 +140,6 @@ public class SlidingWindowCounterBolt extends BaseRichBolt{
 		
 		System.out.println("!!!!!!!!!!!!!!!Increase "+ word+" "+ count);
 		this.increaseObjectCount(word, count);
+		collector.ack(input);
 	}
 }
